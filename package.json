@@ -1,6 +1,6 @@
 {
   "name": "starlight-seo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Starlight plugin for search-ready titles, connected JSON-LD, complete Open Graph tags and a build-time SEO audit.",
   "license": "MIT",
   "author": "kaktak.net",
@@ -50,7 +50,8 @@
     "schema.d.ts",
     "middleware.js",
     "virtual.d.ts",
-    "lib"
+    "lib",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "node --test tests/*.test.js",
@@ -68,5 +69,8 @@
     "astro": "7.3.5",
     "starlight-seo": "link:."
   },
-  "packageManager": "pnpm@12.6.0"
+  "packageManager": "pnpm@12.6.0",
+  "publishConfig": {
+    "access": "public"
+  }
 }

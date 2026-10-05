@@ -13,7 +13,7 @@ It is not a general Astro SEO component. It does nothing on a site that does not
 | Starlight (`@astrojs/starlight`) | **0.42.5** | 0.32.0 |
 | Astro | **7.3.5** | 5.0.0 |
 | Node | 22, 24 | 20 |
-| Plugin | 0.1.0 (tag `v0.1.0`) | |
+| Plugin | 0.2.0 (tag `v0.2.0`) | |
 
 Before installing, read the versions in the target project's `package.json`. Below the floor, stop and report: Starlight older than 0.32 has no `config:setup` hook and no plugin route middleware, so the plugin cannot load. Above the tested pair, install and rely on the verification step.
 
@@ -26,9 +26,9 @@ Work from the root of the Starlight project. Use the package manager the project
 2. **Add the package**, pinned to a tag.
 
    ```sh
-   pnpm add github:kaktaknet/starlight-seo#v0.1.0
-   npm install github:kaktaknet/starlight-seo#v0.1.0
-   yarn add starlight-seo@github:kaktaknet/starlight-seo#v0.1.0
+   pnpm add github:kaktaknet/starlight-seo#v0.2.0
+   npm install github:kaktaknet/starlight-seo#v0.2.0
+   yarn add starlight-seo@github:kaktaknet/starlight-seo#v0.2.0
    ```
 
 3. **Make sure `site` is set** in `defineConfig`. If it is missing, ask the user for the production URL. Do not invent one.
@@ -55,7 +55,14 @@ Work from the root of the Starlight project. Use the package manager the project
 
    If `docsSchema` already has `extend`, merge: `extend: seoSchema().extend({ ...existingFields })`. When the existing `extend` is a function, keep it and merge inside it: `extend: (ctx) => seoSchema().merge(existing(ctx))`.
 
-6. **Remove duplicate metadata.** Search the project for hand-written JSON-LD, `og:image`, `og:title` or `<title>` in a `Head` override, in `routeMiddleware`, in the Starlight `head` option, and in frontmatter `head`. Remove what the plugin now writes. Keep everything else (analytics, fonts, alternate links).
+6. **Move, then remove, the site's own metadata.** Do this in order, so nothing is lost:
+
+   - **Existing titles.** If the site already computes good titles (a data file, a map, middleware), keep them. Feed them to the plugin as `title.templates` entries with an exact `match` and a `template` without `{title}`, or return `title` from the `page` hook of an `extend` module. Never let production titles fall back to sidebar labels.
+   - **Site-specific JSON-LD** (extra properties, extra nodes such as `DefinedTermSet` or `SoftwareSourceCode`). Move it into the `graph` hook of an `extend` module (README, "Adding your own nodes"). Find built-in nodes by `@id`: `#website`, `#webpage`, `#article`, `#breadcrumb`, `#primaryimage`. The hook may also remove built-in nodes.
+   - **The 404 page.** The plugin skips `/404/` and `/404.html`. If the code you are deleting also served the 404 page, keep that branch.
+   - **Tests and gates of the site** that assert on the old shape (an `@id` such as `#page`, a list of `@type` values, the absence of a `robots` tag). Do not edit them silently: list each failing assertion for the user with the new value.
+
+   Then **remove duplicate metadata.** Search the project for hand-written JSON-LD, `og:image`, `og:title` or `<title>` in a `Head` override, in `routeMiddleware`, in the Starlight `head` option, and in frontmatter `head`. Remove what the plugin now writes. Keep everything else (analytics, fonts, alternate links).
 
    ```sh
    grep -rn "ld+json\|og:image\|og:title" src astro.config.*
@@ -63,13 +70,13 @@ Work from the root of the Starlight project. Use the package manager the project
 
 7. **Social image.** If the project has a 1200 x 630 image, pass it as `image: '/og.png'`. If it has none, do not create a placeholder: leave `image` out and set `audit: { rules: { 'image.missing': 'off' } }`, then tell the user.
 
-8. **Build and read the audit.**
+8. **Build and read the audit.** Use the project's own build script when it has one (`pnpm build`), otherwise:
 
    ```sh
    pnpm astro build
    ```
 
-   Errors fail the build. Report warnings to the user grouped by rule. Do not silence a rule to get a green build, except `image.missing` in the case above.
+   Errors fail the build. Report warnings to the user grouped by rule. The log shows 15 pages per rule; set `audit.limit` higher to see all. Do not silence a rule to get a green build, except `image.missing` in the case above.
 
 ## Verifying
 
@@ -81,11 +88,15 @@ grep -o '<meta property="og:title"[^>]*>' dist/index.html
 
 Pass: the build log ends with `[starlight-seo] audited N page(s): 0 error(s), ...`; every audited page has exactly one `application/ld+json` block; `og:title` carries the title without the site name.
 
+Report these visible changes to the user even when the build is green: the `robots` meta tag with snippet directives on every page, `og:type` now `website` on non-article pages, `inLanguage` equal to the Starlight `lang`, the new node identifiers, and breadcrumbs built from the sidebar.
+
+`title.long` on almost every page means the site name is long and `title.brand` is `'always'`: raise `title.max` to the length the site accepts, or shorten the suffix with `title.site`. Do not turn the rule off.
+
 Fail patterns:
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `set site in the Astro config` | `site` is missing | step 3 |
+| ``[starlight-seo] set `site` in the Astro config: ...`` | `site` is missing | step 3 |
 | two `application/ld+json` blocks, or `jsonld.mismatch` | the site still writes its own JSON-LD | step 6 |
 | `Unrecognized key: "seo"` on a content entry | the schema is not extended | step 5 |
 | `title.duplicate` across locales | untranslated fallback pages with `fallback: 'keep'` | use the default `fallback: 'canonical'` |

@@ -43,7 +43,7 @@ The sidebar still says **Git**. The `<h1>` still says **Git**.
 ```text
 package      starlight-seo (ESM, plain JavaScript + hand-written .d.ts, zero dependencies)
 versions     built for Starlight 0.42.x + Astro 7.x (tested 0.42.5 / 7.3.5); floor Starlight 0.32, Astro 5, Node 20
-install      pnpm add github:kaktaknet/starlight-seo#v0.1.0 -> plugins: [starlightSeo()] -> docsSchema({ extend: seoSchema() })
+install      pnpm add github:kaktaknet/starlight-seo#v0.2.0 -> plugins: [starlightSeo()] -> docsSchema({ extend: seoSchema() })
 entry        index.js       default export starlightSeo(options) -> Starlight plugin
 schema       schema.js      seoSchema() -> pass to docsSchema({ extend })
 middleware   middleware.js  runs after Starlight, rewrites route.head, pushes JSON-LD
@@ -87,15 +87,15 @@ The package is installed from GitHub. Pin a tag, so that a build stays reproduci
 **1. Add the package.**
 
 ```sh
-pnpm add github:kaktaknet/starlight-seo#v0.1.0
+pnpm add github:kaktaknet/starlight-seo#v0.2.0
 ```
 
 <details>
 <summary>npm and yarn</summary>
 
 ```sh
-npm install github:kaktaknet/starlight-seo#v0.1.0
-yarn add starlight-seo@github:kaktaknet/starlight-seo#v0.1.0
+npm install github:kaktaknet/starlight-seo#v0.2.0
+yarn add starlight-seo@github:kaktaknet/starlight-seo#v0.2.0
 ```
 
 </details>
@@ -142,13 +142,15 @@ If the collection already extends the schema, merge the two: `seoSchema().extend
 
 **4. Put a 1200 × 630 image at `public/og.png`**, or drop the `image` option and set the audit rule `'image.missing': 'off'`.
 
-**5. Build.** The audit prints what to improve.
+**5. Build.** Use the project's own build script if it has one. The audit prints what to improve.
 
 ```sh
 pnpm astro build
 ```
 
 Every page now has a JSON-LD graph, breadcrumbs and a social image. Titles improve as you add `seo.title` to pages or `title.templates` to the options.
+
+What changes in the output right after the install: one JSON-LD graph with the identifiers listed under [Structured data](#structured-data), a `robots` meta tag with snippet directives, `og:type` set to `website` on non-article pages, and breadcrumbs built from the sidebar. Tests that assert on the old metadata shape need the new identifiers.
 
 > [!IMPORTANT]
 > If the site already writes its own JSON-LD, `og:image` or `<title>` in a `Head` override or in route middleware, remove that code. Two sources produce duplicate tags, and the audit rule `jsonld.mismatch` will report the disagreement.
@@ -207,7 +209,15 @@ starlightSeo({
 
 `{title}` is the page title and `{site}` is the site name. Patterns are matched against the path without the locale prefix: `*` matches one segment, `**` matches any depth.
 
+A site that already keeps its titles in one place does not need frontmatter. A template without `{title}` and with an exact path is a per-page title, and the `page` hook may return `title` from any data source:
+
+```js
+title: { templates: [{ match: '/faq/', template: 'Questions and answers about the Example API' }] }
+```
+
 The site name is appended (`Title | Site`) only while the result fits `title.max`. A title that already mentions the site name is left alone. `og:title` and JSON-LD always carry the title without the site name.
+
+A long site name and `brand: 'always'` push most titles over `title.max`. Either raise `title.max`, or give titles a shorter suffix with `title.site`, or keep `'auto'` and let long titles go without the suffix.
 
 | Option | Default | Meaning |
 |---|---|---|
@@ -273,6 +283,19 @@ starlightSeo({
 })
 ```
 
+Node identifiers are stable and can be relied on in hooks and tests:
+
+| Node | `@id` |
+|---|---|
+| `WebSite` | `<origin>/#website` |
+| publisher | `publisher.id`, or `<publisher.url>#organization` (`#person` for a `Person`) |
+| page | `<canonical>#webpage` |
+| article | `<canonical>#article` |
+| breadcrumbs | `<canonical>#breadcrumb` |
+| image | `<canonical>#primaryimage` |
+
+`inLanguage` is the Starlight `lang` of the page. `publisher` and `author` sit on the article node, not on `WebPage`. The crumb of the current page carries its sidebar label; nested groups that lead to the same page collapse into one crumb.
+
 `breadcrumbs.groups` decides what a sidebar group becomes: `'link'` (default) points it at the first page of the group, `'plain'` keeps the name without a URL, `'skip'` leaves groups out.
 
 ### Adding your own nodes
@@ -307,7 +330,9 @@ export const graph: SeoGraphHook = (nodes, page) => {
 }
 ```
 
-`page` returns the fields to change before the head is written. `graph` returns the final list of nodes.
+`page` returns the fields to change before the head is written; a returned `title` gets the site name by the same rule as any other title. `graph` returns the final list of nodes and may add, change or remove any of them, the built-in ones included.
+
+The plugin middleware runs after the site's own `routeMiddleware`, so it sees the head the site has already adjusted.
 
 ## Open Graph and robots
 
@@ -355,7 +380,7 @@ After `astro build` the plugin reads the generated HTML and reports problems. Th
 | `image.missing` | warn | there is no `og:image` |
 | `image.broken` | error | a same-origin `og:image` is not in the build output |
 
-Redirect pages, `noindex` pages and pages whose canonical URL points elsewhere are not audited. Lengths are counted in characters, not bytes.
+Redirect pages, `noindex` pages and pages whose canonical URL points elsewhere are not audited. Lengths are counted in characters, not bytes. The log shows the first 15 pages per rule; `audit.limit` changes that, and the `audit()` function returns every finding.
 
 ```js
 starlightSeo({
@@ -392,7 +417,7 @@ The pure functions behind the middleware are exported from `starlight-seo/core` 
 | `robots` | snippet directives | `robots` meta content, or `false` |
 | `breadcrumbs` | `{ groups: 'link' }` | group handling and the label of the first crumb |
 | `fallback` | `'canonical'` | canonical URL of untranslated pages |
-| `exclude` | `['/404/', '/404.html']` | paths the plugin leaves untouched |
+| `exclude` | `['/404/', '/404.html']` | paths the plugin leaves untouched: no title, no image, no JSON-LD. The 404 page keeps whatever the site gives it |
 | `extend` | none | module with `page` and `graph` hooks |
 | `audit` | on, `failOn: 'error'` | build audit |
 

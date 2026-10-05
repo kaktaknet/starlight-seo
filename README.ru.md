@@ -43,7 +43,7 @@
 ```text
 package      starlight-seo (ESM, plain JavaScript + hand-written .d.ts, zero dependencies)
 versions     built for Starlight 0.42.x + Astro 7.x (tested 0.42.5 / 7.3.5); floor Starlight 0.32, Astro 5, Node 20
-install      pnpm add github:kaktaknet/starlight-seo#v0.1.0 -> plugins: [starlightSeo()] -> docsSchema({ extend: seoSchema() })
+install      pnpm add github:kaktaknet/starlight-seo#v0.2.0 -> plugins: [starlightSeo()] -> docsSchema({ extend: seoSchema() })
 entry        index.js       default export starlightSeo(options) -> Starlight plugin
 schema       schema.js      seoSchema() -> pass to docsSchema({ extend })
 middleware   middleware.js  runs after Starlight, rewrites route.head, pushes JSON-LD
@@ -87,15 +87,15 @@ tests        pnpm test (node --test, unit) · pnpm test:fixture (builds tests/fi
 **1. Добавьте пакет.**
 
 ```sh
-pnpm add github:kaktaknet/starlight-seo#v0.1.0
+pnpm add github:kaktaknet/starlight-seo#v0.2.0
 ```
 
 <details>
 <summary>npm и yarn</summary>
 
 ```sh
-npm install github:kaktaknet/starlight-seo#v0.1.0
-yarn add starlight-seo@github:kaktaknet/starlight-seo#v0.1.0
+npm install github:kaktaknet/starlight-seo#v0.2.0
+yarn add starlight-seo@github:kaktaknet/starlight-seo#v0.2.0
 ```
 
 </details>
@@ -142,13 +142,15 @@ export const collections = {
 
 **4. Положите картинку 1200 × 630 в `public/og.png`** или уберите настройку `image` и выключите правило проверки: `'image.missing': 'off'`.
 
-**5. Соберите сайт.** Проверка покажет, что стоит улучшить.
+**5. Соберите сайт.** Если у проекта есть своя команда сборки, используйте её. Проверка покажет, что стоит улучшить.
 
 ```sh
 pnpm astro build
 ```
 
 Теперь у каждой страницы есть граф JSON-LD, хлебные крошки и картинка для соцсетей. Заголовки улучшаются по мере того, как вы добавляете `seo.title` страницам или `title.templates` в настройки.
+
+Что меняется на страницах сразу после установки: один граф JSON-LD с идентификаторами из раздела [Структурированные данные](#структурированные-данные), мета-тег `robots` с директивами сниппета, `og:type` со значением `website` на страницах, которые не являются статьями, и крошки, построенные по боковому меню. Тестам, которые проверяют прежний вид метаданных, нужны новые идентификаторы.
 
 > [!IMPORTANT]
 > Если сайт уже сам пишет JSON-LD, `og:image` или `<title>` в подменённом компоненте `Head` или в обработчике маршрута, удалите этот код. Два источника дают повторяющиеся теги, и правило `jsonld.mismatch` сообщит о расхождении.
@@ -207,7 +209,15 @@ starlightSeo({
 
 `{title}` - название страницы, `{site}` - название сайта. Шаблоны сравниваются с путём без префикса языка: `*` соответствует одному сегменту, `**` - любой глубине.
 
+Сайту, который уже хранит заголовки в одном месте, frontmatter не нужен. Шаблон без `{title}` с точным путём - это заголовок одной страницы, а функция `page` может вернуть `title` из любого источника данных:
+
+```js
+title: { templates: [{ match: '/faq/', template: 'Вопросы и ответы об Example API' }] }
+```
+
 Название сайта дописывается (`Заголовок | Сайт`), только пока результат помещается в `title.max`. Заголовок, в котором название сайта уже есть, не меняется. В `og:title` и JSON-LD заголовок всегда идёт без названия сайта.
+
+Длинное название сайта вместе с `brand: 'always'` выводит большинство заголовков за `title.max`. Можно поднять `title.max`, задать более короткий хвост через `title.site` или оставить `'auto'`: тогда длинные заголовки идут без названия сайта.
 
 | Настройка | По умолчанию | Смысл |
 |---|---|---|
@@ -273,6 +283,19 @@ starlightSeo({
 })
 ```
 
+Идентификаторы узлов постоянны, на них можно опираться в своих функциях и тестах:
+
+| Узел | `@id` |
+|---|---|
+| `WebSite` | `<адрес сайта>/#website` |
+| издатель | `publisher.id` или `<publisher.url>#organization` (`#person` для `Person`) |
+| страница | `<канонический адрес>#webpage` |
+| статья | `<канонический адрес>#article` |
+| крошки | `<канонический адрес>#breadcrumb` |
+| картинка | `<канонический адрес>#primaryimage` |
+
+`inLanguage` - это `lang` страницы в Starlight. `publisher` и `author` стоят на узле статьи, а не на `WebPage`. Крошка текущей страницы несёт её название из бокового меню; вложенные группы, ведущие на одну страницу, сливаются в одну крошку.
+
 `breadcrumbs.groups` определяет, чем станет группа бокового меню: `'link'` (по умолчанию) ведёт на первую страницу группы, `'plain'` оставляет название без адреса, `'skip'` пропускает группы.
 
 ### Свои узлы
@@ -307,7 +330,9 @@ export const graph: SeoGraphHook = (nodes, page) => {
 }
 ```
 
-`page` возвращает поля, которые нужно изменить до записи `<head>`. `graph` возвращает итоговый список узлов.
+`page` возвращает поля, которые нужно изменить до записи `<head>`; возвращённый `title` получает название сайта по тому же правилу, что и любой другой заголовок. `graph` возвращает итоговый список узлов и может добавлять, менять и удалять любые из них, включая встроенные.
+
+Обработчик плагина выполняется после собственного `routeMiddleware` сайта и видит `<head>`, который сайт уже поправил.
 
 ## Open Graph и robots
 
@@ -355,7 +380,7 @@ starlightSeo({ image: { src: '/og/{slug}.png', width: 1200, height: 630, alt: 'E
 | `image.missing` | warn | нет `og:image` |
 | `image.broken` | error | `og:image` с того же сайта отсутствует в сборке |
 
-Страницы-перенаправления, страницы с `noindex` и страницы, чей канонический адрес ведёт в другое место, не проверяются. Длина считается в знаках, а не в байтах.
+Страницы-перенаправления, страницы с `noindex` и страницы, чей канонический адрес ведёт в другое место, не проверяются. Длина считается в знаках, а не в байтах. В журнале сборки показаны первые 15 страниц по каждому правилу; предел меняет `audit.limit`, а функция `audit()` возвращает все находки.
 
 ```js
 starlightSeo({
@@ -392,7 +417,7 @@ const result = await audit('dist', normalize({}, { site: 'https://docs.example.c
 | `robots` | директивы сниппета | содержимое мета-тега `robots` или `false` |
 | `breadcrumbs` | `{ groups: 'link' }` | обработка групп и название первой крошки |
 | `fallback` | `'canonical'` | канонический адрес непереведённых страниц |
-| `exclude` | `['/404/', '/404.html']` | пути, которые плагин не трогает |
+| `exclude` | `['/404/', '/404.html']` | пути, которые плагин не трогает: ни заголовка, ни картинки, ни JSON-LD. Страница 404 сохраняет то, что даёт ей сайт |
 | `extend` | нет | модуль с функциями `page` и `graph` |
 | `audit` | включена, `failOn: 'error'` | проверка при сборке |
 
