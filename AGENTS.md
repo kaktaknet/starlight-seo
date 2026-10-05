@@ -62,6 +62,8 @@ Work from the root of the Starlight project. Use the package manager the project
    - **The 404 page.** The plugin skips `/404/` and `/404.html`. If the code you are deleting also served the 404 page, keep that branch.
    - **Tests and gates of the site** that assert on the old shape (an `@id` such as `#page`, a list of `@type` values, the absence of a `robots` tag). Do not edit them silently: list each failing assertion for the user with the new value.
 
+   - **Site name, author, topic, last crumb.** Four defaults are wrong on some sites and no audit rule catches them: a domain used as the Starlight `title` (it becomes the title suffix, `WebSite.name` and `og:site_name` - use the human name and put the domain in `site.alternateName`); `author` equal to the publisher on a translation or on docs of someone else's project (fix in the `graph` hook); one `site.about` on pages about different subjects (add `seo.about`); a custom page under a section link whose last crumb repeats the section name (return `breadcrumbs` from the `page` hook). README, "Site name, author and topic".
+
    Then **remove duplicate metadata.** Search the project for hand-written JSON-LD, `og:image`, `og:title` or `<title>` in a `Head` override, in `routeMiddleware`, in the Starlight `head` option, and in frontmatter `head`. Remove what the plugin now writes. Keep everything else (analytics, fonts, alternate links).
 
    ```sh

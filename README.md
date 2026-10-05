@@ -300,6 +300,15 @@ Node identifiers are stable and can be relied on in hooks and tests:
 
 `breadcrumbs.groups` decides what a sidebar group becomes: `'link'` (default) points it at the first page of the group, `'plain'` keeps the name without a URL, `'skip'` leaves groups out.
 
+### Site name, author and topic
+
+Four things the plugin cannot decide for you. Each one has produced wrong metadata on a real site.
+
+- **The site name is a name, not a domain.** `WebSite.name` and the title suffix come from the Starlight `title`, and so does `og:site_name`, which Starlight writes itself. Set the Starlight `title` to the human name (`Example Docs`, not `example.com`) and put the domain in `site.alternateName`. The plugin option `site.name` changes `WebSite.name` and the suffix only; `og:site_name` keeps following the Starlight `title`.
+- **`author` defaults to the publisher.** That is false for a translation, a mirror or documentation of someone else's project. Replace it in the `graph` hook: find the node whose `@id` ends with `#article` and set `author` to the real organization or people.
+- **`site.about` is the default topic of every article.** Pass one thing (`{ name, url, sameAs }`), a list, or a per-language map (`{ en: {...}, ru: {...} }`). Pages about something else need their own `seo.about` in frontmatter, otherwise every page claims the same subject.
+- **The last breadcrumb takes the label of the current sidebar entry.** A custom page that marks a section link as current (a blog post under "Blog") gets the section name twice. Return `breadcrumbs` from the `page` hook with the last crumb labelled `page.label`.
+
 ### Adding your own nodes
 
 Point `extend` at a module that exports `page`, `graph`, or both. The module runs on the server during rendering and may import your own data.
