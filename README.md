@@ -5,6 +5,7 @@
 **Search-ready titles, connected JSON-LD, complete Open Graph tags and a build-time SEO audit for [Starlight](https://starlight.astro.build/) documentation sites.**
 
 [![CI](https://img.shields.io/github/actions/workflow/status/kaktaknet/starlight-seo/ci.yml?branch=main&label=CI)](https://github.com/kaktaknet/starlight-seo/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/starlight-seo?label=npm)](https://www.npmjs.com/package/starlight-seo)
 [![Release](https://img.shields.io/github/v/tag/kaktaknet/starlight-seo?label=release&sort=semver)](https://github.com/kaktaknet/starlight-seo/tags)
 [![License: MIT](https://img.shields.io/github/license/kaktaknet/starlight-seo)](./LICENSE)
 [![Starlight](https://img.shields.io/badge/Starlight-%E2%89%A5%200.32-7c3aed)](https://starlight.astro.build/)
@@ -43,7 +44,7 @@ The sidebar still says **Git**. The `<h1>` still says **Git**.
 ```text
 package      starlight-seo (ESM, plain JavaScript + hand-written .d.ts, zero dependencies)
 versions     built for Starlight 0.42.x + Astro 7.x (tested 0.42.5 / 7.3.5); floor Starlight 0.32, Astro 5, Node 20
-install      pnpm add github:kaktaknet/starlight-seo#v0.2.0 -> plugins: [starlightSeo()] -> docsSchema({ extend: seoSchema() })
+install      pnpm add starlight-seo -> plugins: [starlightSeo()] -> docsSchema({ extend: seoSchema() })
 entry        index.js       default export starlightSeo(options) -> Starlight plugin
 schema       schema.js      seoSchema() -> pass to docsSchema({ extend })
 middleware   middleware.js  runs after Starlight, rewrites route.head, pushes JSON-LD
@@ -80,22 +81,22 @@ Working instructions for agents live in [AGENTS.md](./AGENTS.md).
 
 ## Install
 
-The package is installed from GitHub. Pin a tag, so that a build stays reproducible.
+The package is published on [npm](https://www.npmjs.com/package/starlight-seo).
 
 ### By hand
 
 **1. Add the package.**
 
 ```sh
-pnpm add github:kaktaknet/starlight-seo#v0.2.0
+pnpm add starlight-seo
 ```
 
 <details>
 <summary>npm and yarn</summary>
 
 ```sh
-npm install github:kaktaknet/starlight-seo#v0.2.0
-yarn add starlight-seo@github:kaktaknet/starlight-seo#v0.2.0
+npm install starlight-seo
+yarn add starlight-seo
 ```
 
 </details>

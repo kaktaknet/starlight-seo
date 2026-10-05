@@ -13,7 +13,7 @@ It is not a general Astro SEO component. It does nothing on a site that does not
 | Starlight (`@astrojs/starlight`) | **0.42.5** | 0.32.0 |
 | Astro | **7.3.5** | 5.0.0 |
 | Node | 22, 24 | 20 |
-| Plugin | 0.2.0 (tag `v0.2.0`) | |
+| Plugin | 0.2.1 (npm `starlight-seo`, tag `v0.2.1`) | |
 
 Before installing, read the versions in the target project's `package.json`. Below the floor, stop and report: Starlight older than 0.32 has no `config:setup` hook and no plugin route middleware, so the plugin cannot load. Above the tested pair, install and rely on the verification step.
 
@@ -23,12 +23,12 @@ Work from the root of the Starlight project. Use the package manager the project
 
 1. **Detect.** Confirm `@astrojs/starlight` is a dependency and check the versions against the table above. Find the Astro config (`astro.config.mjs` or `.ts`) and the content config (`src/content.config.ts`, or `src/content/config.ts` on older projects).
 
-2. **Add the package**, pinned to a tag.
+2. **Add the package** from npm.
 
    ```sh
-   pnpm add github:kaktaknet/starlight-seo#v0.2.0
-   npm install github:kaktaknet/starlight-seo#v0.2.0
-   yarn add starlight-seo@github:kaktaknet/starlight-seo#v0.2.0
+   pnpm add starlight-seo
+   npm install starlight-seo
+   yarn add starlight-seo
    ```
 
 3. **Make sure `site` is set** in `defineConfig`. If it is missing, ask the user for the production URL. Do not invent one.
@@ -144,4 +144,4 @@ Rules of the codebase:
 - A new option needs: a default in `lib/options.js`, a type in `index.d.ts`, a row in both READMEs, a unit test.
 - A new audit rule needs: an entry in `RULES`, the `AuditRule` type, a row in both READMEs, and a case in `tests/audit.test.js` that makes it fire.
 - `README.md` is the source; `README.ru.md` is its translation and must be updated in the same change.
-- Bump `version` in `package.json` and add a `CHANGELOG.md` entry for every user-visible change. The install commands in both READMEs and in this file name the tag.
+- Bump `version` in `package.json` and add a `CHANGELOG.md` entry for every user-visible change. Publish to npm from a clean tree after the tag is pushed.

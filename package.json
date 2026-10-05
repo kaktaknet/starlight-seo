@@ -1,6 +1,6 @@
 {
   "name": "starlight-seo",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Starlight plugin for search-ready titles, connected JSON-LD, complete Open Graph tags and a build-time SEO audit.",
   "license": "MIT",
   "author": "kaktak.net",
