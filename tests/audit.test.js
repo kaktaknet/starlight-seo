@@ -111,3 +111,11 @@ test('a local image that exists is accepted and levels can be changed', async ()
   assert.deepEqual(rules(result), ['title.short'])
   assert.equal(result.errors, 1)
 })
+
+test('an image path cannot leave the build output', async () => {
+  const result = await run({
+    'x/index.html': html({ title: good, description: text, ogTitle: good, image: 'https://example.com/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/hostname', graph: graphFor(good) }),
+    'y/index.html': html({ title: `${good} two`, description: `${text} Second.`, ogTitle: `${good} two`, image: 'https://example.com/%E0%A4%A', graph: graphFor(`${good} two`) }),
+  })
+  assert.deepEqual(rules(result), ['image.broken', 'image.broken'])
+})
