@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { normalize } from '../lib/options.js'
-import { resolvePage } from '../lib/page.js'
+import { resolvePage, retitle } from '../lib/page.js'
 import { applyHead, graphOf, pushGraph } from '../lib/head.js'
 import { resolveTitle } from '../lib/title.js'
 import { breadcrumbs } from '../lib/breadcrumbs.js'
@@ -222,4 +222,25 @@ test('title brand and image source can differ per language', () => {
   assert.equal(ru.site.name, 'LLMs Full Text')
   assert.equal(ru.image.url, 'https://llms-full-txt.ru/og.png')
   assert.equal(resolvePage(custom, input({ lang: 'en', locale: 'en' })).image.url, 'https://llms-full-txt.ru/og-en.png')
+})
+
+test('breadcrumbs: nested groups that share a landing page collapse, the last crumb is the sidebar label', () => {
+  const nested = [{ type: 'group', label: 'Guides', entries: [{ type: 'group', label: 'Connect', entries: [
+    { type: 'link', label: 'Overview', href: '/connect/', isCurrent: false },
+    { type: 'link', label: 'Claude', href: '/connect/claude/', isCurrent: true },
+  ] }] }]
+  const trail = breadcrumbs({ sidebar: nested, home: { label: 'Home', href: '/' }, label: 'Connecting Claude', pathname: '/connect/claude/', isHome: false, groups: 'link' })
+  assert.deepEqual(trail, [
+    { label: 'Home', href: '/' },
+    { label: 'Guides', href: '/connect/' },
+    { label: 'Claude', href: '/connect/claude/' },
+  ])
+})
+
+test('a title returned by the page hook is branded like any other', () => {
+  const page = resolvePage(options, input())
+  Object.assign(page, retitle(options, page, 'Hook title for the page'))
+  assert.equal(page.title, 'Hook title for the page')
+  assert.equal(page.headTitle, 'Hook title for the page | MCP Doc')
+  assert.equal(page.titleSource, 'hook')
 })

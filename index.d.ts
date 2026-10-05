@@ -60,7 +60,7 @@ export interface StarlightSeoOptions {
   fallback?: 'canonical' | 'keep'
   exclude?: string[]
   extend?: string
-  audit?: false | { failOn?: 'error' | 'warn' | 'off'; exclude?: string[]; rules?: Partial<Record<AuditRule, AuditLevel>> }
+  audit?: false | { failOn?: 'error' | 'warn' | 'off'; limit?: number; exclude?: string[]; rules?: Partial<Record<AuditRule, AuditLevel>> }
 }
 
 export interface SeoCrumb {
@@ -78,7 +78,7 @@ export interface SeoPage {
   label: string
   title: string
   headTitle: string
-  titleSource: 'frontmatter' | 'template' | 'label'
+  titleSource: 'frontmatter' | 'template' | 'label' | 'hook'
   description: string | undefined
   type: string
   article: boolean

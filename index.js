@@ -51,7 +51,7 @@ export default function starlightSeo(userOptions = {}) {
             'astro:build:done': async ({ dir, logger }) => {
               if (options.audit.failOn === 'off') return
               const result = await audit(fileURLToPath(dir), options)
-              report(result, logger)
+              report(result, logger, options.audit.limit)
               const failed = result.errors > 0 || (options.audit.failOn === 'warn' && result.warnings > 0)
               if (failed) throw new Error(`[starlight-seo] audit failed: ${result.errors} error(s), ${result.warnings} warning(s)`)
             },

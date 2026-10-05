@@ -2,7 +2,7 @@ import { defineRouteMiddleware } from '@astrojs/starlight/route-data'
 import options from 'virtual:starlight-seo/options'
 import { graph as graphHook, page as pageHook } from 'virtual:starlight-seo/extend'
 import { applyHead, canonicalOf, graphOf, pushGraph, setCanonical } from './lib/head.js'
-import { resolvePage } from './lib/page.js'
+import { resolvePage, retitle } from './lib/page.js'
 import { anyMatch } from './lib/text.js'
 
 export const onRequest = defineRouteMiddleware(async (context, next) => {
@@ -39,7 +39,11 @@ export const onRequest = defineRouteMiddleware(async (context, next) => {
     seo: data.seo,
   })
 
-  if (typeof pageHook === 'function') Object.assign(page, (await pageHook(page, context)) ?? {})
+  if (typeof pageHook === 'function') {
+    const patch = (await pageHook(page, context)) ?? {}
+    Object.assign(page, patch)
+    if (patch.title !== undefined && patch.headTitle === undefined) Object.assign(page, retitle(options, page, patch.title))
+  }
 
   applyHead(route.head, page, options)
 
