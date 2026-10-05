@@ -145,6 +145,7 @@ test('graph: connected nodes with stable identifiers', () => {
   assert.equal(by.TechArticle.dateModified, '2026-10-05')
   assert.equal(by.TechArticle.keywords, 'mcp, python')
   assert.equal(by.TechArticle.about.name, 'Model Context Protocol')
+  assert.equal(by.TechArticle.about.sameAs, 'https://modelcontextprotocol.io/')
   assert.equal(by.BreadcrumbList.itemListElement.length, 3)
   assert.equal(by.BreadcrumbList.itemListElement[1].item, 'https://mcpdoc.ru/sdk/')
   for (const node of nodes) for (const value of Object.values(node)) assert.notEqual(value, undefined)

@@ -13,7 +13,7 @@ It is not a general Astro SEO component. It does nothing on a site that does not
 | Starlight (`@astrojs/starlight`) | **0.42.5** | 0.32.0 |
 | Astro | **7.3.5** | 5.0.0 |
 | Node | 22, 24 | 20 |
-| Plugin | 0.2.1 (npm `starlight-seo`, tag `v0.2.1`) | |
+| Plugin | 0.2.2 (npm `starlight-seo`, tag `v0.2.2`) | |
 
 Before installing, read the versions in the target project's `package.json`. Below the floor, stop and report: Starlight older than 0.32 has no `config:setup` hook and no plugin route middleware, so the plugin cannot load. Above the tested pair, install and rely on the verification step.
 
