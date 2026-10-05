@@ -1,0 +1,5 @@
+export { normalize } from './lib/options.js'
+export { resolvePage } from './lib/page.js'
+export { applyHead, graphOf, pushGraph } from './lib/head.js'
+export { wrap } from './lib/graph.js'
+export { serialize } from './lib/text.js'

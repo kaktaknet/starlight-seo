@@ -1,0 +1,72 @@
+{
+  "name": "starlight-seo",
+  "version": "0.1.0",
+  "description": "Starlight plugin for search-ready titles, connected JSON-LD, complete Open Graph tags and a build-time SEO audit.",
+  "license": "MIT",
+  "author": "kaktak.net",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaktaknet/starlight-seo.git"
+  },
+  "homepage": "https://github.com/kaktaknet/starlight-seo#readme",
+  "bugs": "https://github.com/kaktaknet/starlight-seo/issues",
+  "keywords": [
+    "starlight",
+    "starlight-plugin",
+    "astro",
+    "withastro",
+    "seo",
+    "json-ld",
+    "schema.org",
+    "open-graph",
+    "structured-data"
+  ],
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    },
+    "./schema": {
+      "types": "./schema.d.ts",
+      "import": "./schema.js"
+    },
+    "./middleware": "./middleware.js",
+    "./audit": {
+      "types": "./lib/audit.d.ts",
+      "import": "./lib/audit.js"
+    },
+    "./core": {
+      "types": "./core.d.ts",
+      "import": "./core.js"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "core.js",
+    "core.d.ts",
+    "schema.js",
+    "schema.d.ts",
+    "middleware.js",
+    "virtual.d.ts",
+    "lib"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "test:fixture": "node tests/fixture.mjs"
+  },
+  "peerDependencies": {
+    "@astrojs/starlight": ">=0.32.0",
+    "astro": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@astrojs/starlight": "0.42.5",
+    "astro": "7.3.5",
+    "starlight-seo": "link:."
+  },
+  "packageManager": "pnpm@12.6.0"
+}
