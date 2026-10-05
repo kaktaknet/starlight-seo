@@ -92,6 +92,8 @@ The package is published on [npm](https://www.npmjs.com/package/starlight-seo).
 pnpm add starlight-seo
 ```
 
+No pnpm yet? Node ships with Corepack: run `corepack enable pnpm` once, or `npm install -g pnpm`. A project that uses npm or yarn does not need pnpm at all - take the command below.
+
 <details>
 <summary>npm and yarn</summary>
 
