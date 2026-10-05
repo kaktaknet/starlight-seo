@@ -92,7 +92,7 @@ tests        pnpm test (node --test, unit) · pnpm test:fixture (builds tests/fi
 pnpm add starlight-seo
 ```
 
-Ещё нет pnpm? В Node есть Corepack: один раз выполните `corepack enable pnpm` либо `npm install -g pnpm`. Проекту на npm или yarn pnpm не нужен вовсе - возьмите команду ниже.
+Ещё нет pnpm? Выполните `npm install -g pnpm` либо `corepack enable pnpm`, если ваша версия Node включает Corepack. Проекту на npm или yarn pnpm не нужен вовсе - возьмите команду ниже.
 
 <details>
 <summary>npm и yarn</summary>
