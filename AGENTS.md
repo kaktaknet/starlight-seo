@@ -23,7 +23,7 @@ Work from the root of the Starlight project. Use the package manager the project
 
 1. **Detect.** Confirm `@astrojs/starlight` is a dependency and check the versions against the table above. Find the Astro config (`astro.config.mjs` or `.ts`) and the content config (`src/content.config.ts`, or `src/content/config.ts` on older projects).
 
-2. **Add the package** from npm.
+2. **Add the package** from npm: <https://www.npmjs.com/package/starlight-seo>. Source: <https://github.com/kaktaknet/starlight-seo>.
 
    ```sh
    pnpm add starlight-seo

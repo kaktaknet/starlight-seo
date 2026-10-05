@@ -39,11 +39,12 @@
 В меню по-прежнему **Git**. В `<h1>` по-прежнему **Git**.
 
 <details>
-<summary><b>Для ИИ-агентов: весь репозиторий в четырнадцати строках</b></summary>
+<summary><b>Для ИИ-агентов: весь репозиторий в пятнадцати строках</b></summary>
 
 ```text
 package      starlight-seo (ESM, plain JavaScript + hand-written .d.ts, zero dependencies)
 versions     built for Starlight 0.42.x + Astro 7.x (tested 0.42.5 / 7.3.5); floor Starlight 0.32, Astro 5, Node 20
+npm          https://www.npmjs.com/package/starlight-seo
 install      pnpm add starlight-seo -> plugins: [starlightSeo()] -> docsSchema({ extend: seoSchema() })
 entry        index.js       default export starlightSeo(options) -> Starlight plugin
 schema       schema.js      seoSchema() -> pass to docsSchema({ extend })
