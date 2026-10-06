@@ -10,6 +10,7 @@
 [![Лицензия: MIT](https://img.shields.io/github/license/kaktaknet/starlight-seo?label=%D0%BB%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F)](./LICENSE)
 [![Starlight](https://img.shields.io/badge/Starlight-%E2%89%A5%200.32-7c3aed)](https://starlight.astro.build/)
 [![Astro](https://img.shields.io/badge/Astro-%E2%89%A5%205-ff5d01)](https://astro.build/)
+[![В каталоге плагинов Starlight](https://img.shields.io/badge/Starlight-%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3%20%D0%BF%D0%BB%D0%B0%D0%B3%D0%B8%D0%BD%D0%BE%D0%B2-7c3aed?logo=astro&logoColor=white)](https://starlight.astro.build/resources/plugins/#community-plugins)
 [![Node](https://img.shields.io/badge/Node-%E2%89%A5%2020-339933)](https://nodejs.org/)
 [![Зависимости](https://img.shields.io/badge/%D0%B7%D0%B0%D0%B2%D0%B8%D1%81%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8-0-brightgreen)](./package.json)
 
