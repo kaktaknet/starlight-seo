@@ -49,5 +49,5 @@ export const onRequest = defineRouteMiddleware(async (context, next) => {
 
   let nodes = graphOf(page, options)
   if (typeof graphHook === 'function') nodes = (await graphHook(nodes, page, context)) ?? nodes
-  pushGraph(route.head, nodes)
+  pushGraph(route.head, nodes, options)
 })

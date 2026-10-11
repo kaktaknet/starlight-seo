@@ -2,7 +2,7 @@
 
 ## What this repository is
 
-`starlight-seo` is a plugin for [Starlight](https://starlight.astro.build/), the documentation framework built on Astro. It gives every page a search-ready `<title>`, one connected JSON-LD `@graph`, complete Open Graph tags, and a build-time audit that fails the build on weak metadata. It works through Starlight route middleware and overrides no components.
+`starlight-seo` is a plugin for [Starlight](https://starlight.astro.build/), the documentation framework built on Astro. It gives every page a search-ready `<title>`, one connected JSON-LD `@graph` plus a standalone breadcrumb list, complete Open Graph tags, and a build-time audit that fails the build on weak metadata. It works through Starlight route middleware and overrides no components.
 
 It is not a general Astro SEO component. It does nothing on a site that does not use Starlight.
 
@@ -13,7 +13,7 @@ It is not a general Astro SEO component. It does nothing on a site that does not
 | Starlight (`@astrojs/starlight`) | **0.42.5** | 0.32.0 |
 | Astro | **7.3.5** | 5.0.0 |
 | Node | 22, 24 | 20 |
-| Plugin | 0.2.2 (npm `starlight-seo`, tag `v0.2.2`) | |
+| Plugin | 0.3.0 (npm `starlight-seo`, tag `v0.3.0`) | |
 
 Before installing, read the versions in the target project's `package.json`. Below the floor, stop and report: Starlight older than 0.32 has no `config:setup` hook and no plugin route middleware, so the plugin cannot load. Above the tested pair, install and rely on the verification step.
 
@@ -88,7 +88,7 @@ grep -c 'application/ld+json' dist/index.html
 grep -o '<meta property="og:title"[^>]*>' dist/index.html
 ```
 
-Pass: the build log ends with `[starlight-seo] audited N page(s): 0 error(s), ...`; every audited page has exactly one `application/ld+json` block; `og:title` carries the title without the site name.
+Pass: the build log ends with `[starlight-seo] audited N page(s): 0 error(s), ...`; every audited page has one `application/ld+json` block with the `@graph` and, below the home page, one with the `BreadcrumbList`; `og:title` carries the title without the site name.
 
 Report these visible changes to the user even when the build is green: the `robots` meta tag with snippet directives on every page, `og:type` now `website` on non-article pages, `inLanguage` equal to the Starlight `lang`, the new node identifiers, and breadcrumbs built from the sidebar.
 
@@ -99,7 +99,7 @@ Fail patterns:
 | Symptom | Cause | Fix |
 |---|---|---|
 | ``[starlight-seo] set `site` in the Astro config: ...`` | `site` is missing | step 3 |
-| two `application/ld+json` blocks, or `jsonld.mismatch` | the site still writes its own JSON-LD | step 6 |
+| more `application/ld+json` blocks than the graph and the breadcrumb list, or `jsonld.mismatch` | the site still writes its own JSON-LD | step 6 |
 | `Unrecognized key: "seo"` on a content entry | the schema is not extended | step 5 |
 | `title.duplicate` across locales | untranslated fallback pages with `fallback: 'keep'` | use the default `fallback: 'canonical'` |
 | `Cannot find module 'virtual:starlight-seo/options'` | the package was externalized by a custom `vite.ssr.external` | remove `starlight-seo` from that list |

@@ -27,7 +27,7 @@
 | **What** | A Starlight plugin. One line in `astro.config`, one line in `content.config`. |
 | **Problem** | Starlight uses one `title` for the sidebar, the `<h1>`, the `<title>` tag and `og:title`. A good sidebar label ("Git", "Docker", "Install") is a poor search result. |
 | **Solution** | The sidebar and heading keep the short label. Search engines and social cards get a full title from `seo.title` or a per-section template. |
-| **Also** | One JSON-LD `@graph` per page, breadcrumbs taken from the sidebar, Open Graph completion, and an audit that fails the build on weak metadata. |
+| **Also** | One JSON-LD `@graph` per page plus a standalone breadcrumb list taken from the sidebar, Open Graph completion, and an audit that fails the build on weak metadata. |
 | **How** | Starlight route middleware. No component overrides, no runtime dependencies, no build step. |
 | **Built for** | Starlight **0.42** on Astro **7** - developed and tested on 0.42.5 and 7.3.5. |
 | **Works with** | Starlight ≥ 0.32, Astro ≥ 5, Node ≥ 20. `site` must be set in the Astro config. |
@@ -54,7 +54,7 @@ core         core.js        pure functions for unit tests: normalize, resolvePag
 lib/         title.js breadcrumbs.js graph.js head.js page.js options.js audit.js text.js
 frontmatter  seo: { title, description, type, image, imageAlt, noindex, published, modified, section, keywords, about }
 title order  seo.title -> first matching title.templates entry -> page title; site name appended only if it fits title.max
-graph        WebSite, Organization|Person, WebPage, [ImageObject], [article type], BreadcrumbList, linked by @id
+graph        WebSite, Organization|Person, WebPage, [ImageObject], [article type], linked by @id; BreadcrumbList as its own block
 hooks        options.extend -> module exporting page(page, ctx) and graph(nodes, page, ctx)
 audit        astro:build:done, reads built HTML, 14 rules, throws on level "error"
 tests        pnpm test (node --test, unit) · pnpm test:fixture (builds tests/fixture with real Starlight)
@@ -155,7 +155,7 @@ pnpm astro build
 
 Every page now has a JSON-LD graph, breadcrumbs and a social image. Titles improve as you add `seo.title` to pages or `title.templates` to the options.
 
-What changes in the output right after the install: one JSON-LD graph with the identifiers listed under [Structured data](#structured-data), a `robots` meta tag with snippet directives, `og:type` set to `website` on non-article pages, and breadcrumbs built from the sidebar. Tests that assert on the old metadata shape need the new identifiers.
+What changes in the output right after the install: one JSON-LD graph and a separate breadcrumb block with the identifiers listed under [Structured data](#structured-data), a `robots` meta tag with snippet directives, `og:type` set to `website` on non-article pages, and breadcrumbs built from the sidebar. Tests that assert on the old metadata shape need the new identifiers.
 
 > [!IMPORTANT]
 > If the site already writes its own JSON-LD, `og:image` or `<title>` in a `Head` override or in route middleware, remove that code. Two sources produce duplicate tags, and the audit rule `jsonld.mismatch` will report the disagreement.
@@ -272,7 +272,7 @@ graph LR
 - `WebSite` and its publisher (`Organization` or `Person`, with logo and `sameAs`);
 - `WebPage` with the breadcrumb, the primary image and the dates;
 - for article types, an article node (`TechArticle` by default) that points at the page through `mainEntityOfPage`;
-- `BreadcrumbList` built from the sidebar;
+- `BreadcrumbList` built from the sidebar, emitted as its own `<script>` block (see below);
 - `ImageObject` when the page has a social image.
 
 The page type is `seo.type`, then the first match in `types`, then `WebPage` for the home page, `CollectionPage` for `template: splash`, and `defaultType` (`TechArticle`) for everything else.
@@ -302,6 +302,10 @@ Node identifiers are stable and can be relied on in hooks and tests:
 `inLanguage` is the Starlight `lang` of the page. `publisher` and `author` sit on the article node, not on `WebPage`. The crumb of the current page carries its sidebar label; nested groups that lead to the same page collapse into one crumb.
 
 `breadcrumbs.groups` decides what a sidebar group becomes: `'link'` (default) points it at the first page of the group, `'plain'` keeps the name without a URL, `'skip'` leaves groups out.
+
+`breadcrumbs.section` puts one fixed crumb right after the first one, for a site whose docs live under a section the sidebar does not name: `{ label: { en: 'Docs', ru: 'Документация' }, href: '/docs/' }`. `href` is relative to the language root. The crumb is dropped on the section page itself and when the sidebar already leads through it.
+
+The breadcrumb list is written as a separate top-level JSON-LD block, and `WebPage.breadcrumb` points at it by `@id`. Google reads both shapes; Yandex documents breadcrumbs only as a standalone `BreadcrumbList` and says nothing about `@graph` or `@id` references, so the standalone block is the form both engines are documented to read. Each `ListItem` carries the URL twice, as `item` (Google) and `url` (Yandex). Set `breadcrumbs.standalone: false` to keep the list inside the `@graph`.
 
 ### Site name, author and topic
 
@@ -429,7 +433,7 @@ The pure functions behind the middleware are exported from `starlight-seo/core` 
 | `types`, `defaultType` | `[]`, `'TechArticle'` | page types by path |
 | `image` | none | default social image or pattern |
 | `robots` | snippet directives | `robots` meta content, or `false` |
-| `breadcrumbs` | `{ groups: 'link' }` | group handling and the label of the first crumb |
+| `breadcrumbs` | `{ groups: 'link', standalone: true }` | group handling, the label of the first crumb, an optional `section` crumb, and whether the list is a separate JSON-LD block |
 | `fallback` | `'canonical'` | canonical URL of untranslated pages |
 | `exclude` | `['/404/', '/404.html']` | paths the plugin leaves untouched: no title, no image, no JSON-LD. The 404 page keeps whatever the site gives it |
 | `extend` | none | module with `page` and `graph` hooks |

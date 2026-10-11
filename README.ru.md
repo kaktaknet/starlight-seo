@@ -27,7 +27,7 @@
 | **Что это** | Плагин для Starlight. Одна строка в `astro.config`, одна строка в `content.config`. |
 | **Проблема** | В Starlight одно поле `title` служит пунктом бокового меню, заголовком `<h1>`, тегом `<title>` и `og:title`. Хорошее название для меню («Git», «Docker», «Установка») - плохой результат в поиске. |
 | **Решение** | Меню и заголовок страницы сохраняют короткое название. Поисковики и карточки в соцсетях получают полный заголовок из `seo.title` или из шаблона раздела. |
-| **Ещё** | Один граф JSON-LD на страницу, хлебные крошки из бокового меню, достройка Open Graph и проверка, которая останавливает сборку при слабых метаданных. |
+| **Ещё** | Один граф JSON-LD на страницу и отдельная цепочка хлебных крошек из бокового меню, достройка Open Graph и проверка, которая останавливает сборку при слабых метаданных. |
 | **Как устроен** | Обработчик маршрута Starlight. Компоненты не подменяются, зависимостей нет, шага сборки нет. |
 | **Сделан для** | Starlight **0.42** на Astro **7** - разработан и проверен на 0.42.5 и 7.3.5. |
 | **Работает с** | Starlight ≥ 0.32, Astro ≥ 5, Node ≥ 20. В настройках Astro должен быть задан `site`. |
@@ -54,7 +54,7 @@ core         core.js        pure functions for unit tests: normalize, resolvePag
 lib/         title.js breadcrumbs.js graph.js head.js page.js options.js audit.js text.js
 frontmatter  seo: { title, description, type, image, imageAlt, noindex, published, modified, section, keywords, about }
 title order  seo.title -> first matching title.templates entry -> page title; site name appended only if it fits title.max
-graph        WebSite, Organization|Person, WebPage, [ImageObject], [article type], BreadcrumbList, linked by @id
+graph        WebSite, Organization|Person, WebPage, [ImageObject], [article type], linked by @id; BreadcrumbList as its own block
 hooks        options.extend -> module exporting page(page, ctx) and graph(nodes, page, ctx)
 audit        astro:build:done, reads built HTML, 14 rules, throws on level "error"
 tests        pnpm test (node --test, unit) · pnpm test:fixture (builds tests/fixture with real Starlight)
@@ -155,7 +155,7 @@ pnpm astro build
 
 Теперь у каждой страницы есть граф JSON-LD, хлебные крошки и картинка для соцсетей. Заголовки улучшаются по мере того, как вы добавляете `seo.title` страницам или `title.templates` в настройки.
 
-Что меняется на страницах сразу после установки: один граф JSON-LD с идентификаторами из раздела [Структурированные данные](#структурированные-данные), мета-тег `robots` с директивами сниппета, `og:type` со значением `website` на страницах, которые не являются статьями, и крошки, построенные по боковому меню. Тестам, которые проверяют прежний вид метаданных, нужны новые идентификаторы.
+Что меняется на страницах сразу после установки: один граф JSON-LD и отдельный блок крошек с идентификаторами из раздела [Структурированные данные](#структурированные-данные), мета-тег `robots` с директивами сниппета, `og:type` со значением `website` на страницах, которые не являются статьями, и крошки, построенные по боковому меню. Тестам, которые проверяют прежний вид метаданных, нужны новые идентификаторы.
 
 > [!IMPORTANT]
 > Если сайт уже сам пишет JSON-LD, `og:image` или `<title>` в подменённом компоненте `Head` или в обработчике маршрута, удалите этот код. Два источника дают повторяющиеся теги, и правило `jsonld.mismatch` сообщит о расхождении.
@@ -272,7 +272,7 @@ graph LR
 - `WebSite` и его издатель (`Organization` или `Person`, с логотипом и `sameAs`);
 - `WebPage` с крошками, главной картинкой и датами;
 - для статей - узел статьи (по умолчанию `TechArticle`), который указывает на страницу через `mainEntityOfPage`;
-- `BreadcrumbList`, построенный по боковому меню;
+- `BreadcrumbList`, построенный по боковому меню и выводимый отдельным блоком `<script>` (см. ниже);
 - `ImageObject`, если у страницы есть картинка для соцсетей.
 
 Тип страницы - это `seo.type`, затем первое совпадение в `types`, затем `WebPage` для главной, `CollectionPage` для `template: splash` и `defaultType` (`TechArticle`) для остальных.
@@ -302,6 +302,10 @@ starlightSeo({
 `inLanguage` - это `lang` страницы в Starlight. `publisher` и `author` стоят на узле статьи, а не на `WebPage`. Крошка текущей страницы несёт её название из бокового меню; вложенные группы, ведущие на одну страницу, сливаются в одну крошку.
 
 `breadcrumbs.groups` определяет, чем станет группа бокового меню: `'link'` (по умолчанию) ведёт на первую страницу группы, `'plain'` оставляет название без адреса, `'skip'` пропускает группы.
+
+`breadcrumbs.section` ставит одну постоянную крошку сразу после первой - для сайта, у которого документация лежит в разделе, не названном в боковом меню: `{ label: { en: 'Docs', ru: 'Документация' }, href: '/docs/' }`. `href` отсчитывается от корня языка. На странице самого раздела крошки нет, и её нет, если боковое меню уже ведёт через этот раздел.
+
+Цепочка крошек выводится отдельным блоком JSON-LD верхнего уровня, а `WebPage.breadcrumb` ссылается на неё по `@id`. Google читает обе формы; Яндекс описывает крошки только как самостоятельный `BreadcrumbList` и ничего не говорит про `@graph` и ссылки по `@id`, поэтому отдельный блок - форма, которую по документации читают обе системы. Каждый `ListItem` несёт адрес дважды: в `item` (Google) и в `url` (Яндекс). `breadcrumbs.standalone: false` оставляет цепочку внутри `@graph`.
 
 ### Имя сайта, автор и тема
 
@@ -429,7 +433,7 @@ const result = await audit('dist', normalize({}, { site: 'https://docs.example.c
 | `types`, `defaultType` | `[]`, `'TechArticle'` | типы страниц по путям |
 | `image` | нет | картинка для соцсетей по умолчанию или шаблон |
 | `robots` | директивы сниппета | содержимое мета-тега `robots` или `false` |
-| `breadcrumbs` | `{ groups: 'link' }` | обработка групп и название первой крошки |
+| `breadcrumbs` | `{ groups: 'link', standalone: true }` | обработка групп, название первой крошки, необязательная крошка раздела `section` и вывод цепочки отдельным блоком JSON-LD |
 | `fallback` | `'canonical'` | канонический адрес непереведённых страниц |
 | `exclude` | `['/404/', '/404.html']` | пути, которые плагин не трогает: ни заголовка, ни картинки, ни JSON-LD. Страница 404 сохраняет то, что даёт ей сайт |
 | `extend` | нет | модуль с функциями `page` и `graph` |

@@ -32,4 +32,5 @@ export function applyHead(head: HeadEntry[], page: SeoPage, options: ResolvedOpt
 export function graphOf(page: SeoPage, options: ResolvedOptions): SeoNode[]
 export function pushGraph(head: HeadEntry[], nodes: SeoNode[]): void
 export function wrap(nodes: SeoNode[]): { '@context': string; '@graph': SeoNode[] }
+export function splitBlocks(nodes: SeoNode[], options?: { standaloneTypes?: string[] }): SeoNode[]
 export function serialize(value: unknown): string

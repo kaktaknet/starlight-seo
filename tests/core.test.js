@@ -180,9 +180,48 @@ test('head: tags are rewritten in place and completed', () => {
   assert.equal(meta('property', 'article:modified_time'), '2026-10-05T10:00:00.000Z')
   assert.equal(meta('name', 'robots'), 'max-snippet:-1, max-image-preview:large, max-video-preview:-1')
   assert.equal(head.filter((entry) => entry.attrs?.property === 'og:title').length, 1)
-  const script = head.at(-1)
-  assert.equal(script.attrs.type, 'application/ld+json')
-  assert.equal(JSON.parse(script.content)['@graph'].length, 6)
+  const blocks = head.filter((entry) => entry.attrs?.type === 'application/ld+json').map((entry) => JSON.parse(entry.content))
+  assert.equal(blocks.length, 2)
+  assert.deepEqual(Object.keys(blocks[0]).sort(), ['@context', '@graph'])
+  assert.equal(blocks[0]['@graph'].length, 5)
+  assert.equal(blocks[0]['@graph'].find((node) => node['@type'] === 'WebPage').breadcrumb['@id'], blocks[1]['@id'])
+  assert.equal(blocks[1]['@context'], 'https://schema.org')
+  assert.equal(blocks[1]['@type'], 'BreadcrumbList')
+})
+
+test('breadcrumbs: one top-level BreadcrumbList with item and url, or inside the graph when standalone is off', () => {
+  const page = resolvePage(options, input())
+  const nodes = graphOf(page, options)
+  const head = []
+  pushGraph(head, nodes, options)
+  const trail = JSON.parse(head.at(-1).content)
+  assert.ok(!('@graph' in trail))
+  for (const item of trail.itemListElement) {
+    assert.equal(typeof item.position, 'number')
+    assert.equal(item.url, item.item)
+    assert.ok(item.url.startsWith('https://mcpdoc.ru/'))
+  }
+  const inline = normalize({ breadcrumbs: { standalone: false } }, { site: 'https://mcpdoc.ru' })
+  const single = []
+  pushGraph(single, graphOf(resolvePage(inline, input()), inline), inline)
+  assert.equal(single.length, 1)
+  assert.ok(JSON.parse(single[0].content)['@graph'].some((node) => node['@type'] === 'BreadcrumbList'))
+})
+
+test('breadcrumbs: a section crumb goes after home, once, and never on the section page itself', () => {
+  const section = { label: 'Docs', href: '/docs/' }
+  const crumbs = (pathname, sidebarEntries = []) =>
+    breadcrumbs({ sidebar: sidebarEntries, home: { label: 'Home', href: '/' }, section, label: 'Page', pathname, isHome: false, groups: 'skip' })
+  assert.deepEqual(crumbs('/docs/dns/').map((crumb) => crumb.href), ['/', '/docs/', '/docs/dns/'])
+  assert.deepEqual(crumbs('/docs/').map((crumb) => crumb.href), ['/', '/docs/'])
+  const through = [{ type: 'group', label: 'Docs', entries: [{ type: 'link', label: 'Overview', href: '/docs/', isCurrent: false }, { type: 'link', label: 'Page', href: '/docs/dns/', isCurrent: true }] }]
+  const linked = breadcrumbs({ sidebar: through, home: { label: 'Home', href: '/' }, section, label: 'Page', pathname: '/docs/dns/', isHome: false, groups: 'link' })
+  assert.deepEqual(linked.map((crumb) => crumb.href), ['/', '/docs/', '/docs/dns/'])
+  const localized = normalize({ breadcrumbs: { section: { label: { ru: 'Документация', en: 'Docs' }, href: '/docs/' } } }, { site: 'https://example.com' })
+  const ru = resolvePage(localized, input({ pathname: '/ru/docs/dns/', path: '/docs/dns/', lang: 'ru', locale: 'ru', homeHref: '/ru/', canonical: 'https://example.com/ru/docs/dns/' }))
+  assert.deepEqual(ru.breadcrumbs[1], { label: 'Документация', href: '/ru/docs/' })
+  assert.throws(() => normalize({ breadcrumbs: { section: { label: 'Docs', href: 'docs/' } } }, { site: 'https://example.com' }), /breadcrumbs\.section/)
+  assert.throws(() => normalize({ breadcrumbs: { standalone: 'yes' } }, { site: 'https://example.com' }), /breadcrumbs\.standalone/)
 })
 
 test('head: noindex, website type and the card without an image', () => {

@@ -56,7 +56,7 @@ export interface StarlightSeoOptions {
   defaultType?: string
   image?: string | { src: Localized<string>; width?: number; height?: number; alt?: Localized<string> }
   robots?: string | false
-  breadcrumbs?: { groups?: 'link' | 'plain' | 'skip'; home?: Localized<string> }
+  breadcrumbs?: { groups?: 'link' | 'plain' | 'skip'; home?: Localized<string>; section?: { label: Localized<string>; href: string }; standalone?: boolean }
   fallback?: 'canonical' | 'keep'
   exclude?: string[]
   extend?: string
