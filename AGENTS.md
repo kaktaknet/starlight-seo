@@ -10,12 +10,12 @@ It is not a general Astro SEO component. It does nothing on a site that does not
 
 | | Built for and tested on | Lowest supported |
 |---|---|---|
-| Starlight (`@astrojs/starlight`) | **0.42.5** | 0.32.0 |
-| Astro | **7.3.5** | 5.0.0 |
+| Starlight (`@astrojs/starlight`) | **0.42.6** | 0.33.0 |
+| Astro | **7.3.8** | 5.1.5 |
 | Node | 22, 24 | 20 |
-| Plugin | 0.3.0 (npm `starlight-seo`, tag `v0.3.0`) | |
+| Plugin | 1.0.0 (npm `starlight-seo`, tag `v1.0.0`) | |
 
-Before installing, read the versions in the target project's `package.json`. Below the floor, stop and report: Starlight older than 0.32 has no `config:setup` hook and no plugin route middleware, so the plugin cannot load. Above the tested pair, install and rely on the verification step.
+Before installing, read the versions in the target project's `package.json`. Below the floor, stop and report: Starlight older than 0.33 has no `head` in its route data, so the plugin cannot write the page head. Above the tested pair, install and rely on the verification step.
 
 ## Installing into a site
 

@@ -8,7 +8,7 @@
 [![npm](https://img.shields.io/npm/v/starlight-seo?label=npm)](https://www.npmjs.com/package/starlight-seo)
 [![Release](https://img.shields.io/github/v/tag/kaktaknet/starlight-seo?label=release&sort=semver)](https://github.com/kaktaknet/starlight-seo/tags)
 [![License: MIT](https://img.shields.io/github/license/kaktaknet/starlight-seo)](./LICENSE)
-[![Starlight](https://img.shields.io/badge/Starlight-%E2%89%A5%200.32-7c3aed)](https://starlight.astro.build/)
+[![Starlight](https://img.shields.io/badge/Starlight-%E2%89%A5%200.33-7c3aed)](https://starlight.astro.build/)
 [![Astro](https://img.shields.io/badge/Astro-%E2%89%A5%205-ff5d01)](https://astro.build/)
 [![Listed in the Starlight plugin showcase](https://img.shields.io/badge/Starlight-plugin%20showcase-7c3aed?logo=astro&logoColor=white)](https://starlight.astro.build/resources/plugins/#community-plugins)
 [![Node](https://img.shields.io/badge/Node-%E2%89%A5%2020-339933)](https://nodejs.org/)
@@ -29,8 +29,8 @@
 | **Solution** | The sidebar and heading keep the short label. Search engines and social cards get a full title from `seo.title` or a per-section template. |
 | **Also** | One JSON-LD `@graph` per page plus a standalone breadcrumb list taken from the sidebar, Open Graph completion, and an audit that fails the build on weak metadata. |
 | **How** | Starlight route middleware. No component overrides, no runtime dependencies, no build step. |
-| **Built for** | Starlight **0.42** on Astro **7** - developed and tested on 0.42.5 and 7.3.5. |
-| **Works with** | Starlight ≥ 0.32, Astro ≥ 5, Node ≥ 20. `site` must be set in the Astro config. |
+| **Built for** | Starlight **0.42** on Astro **7** - developed and tested on 0.42.6 and 7.3.8. |
+| **Works with** | Starlight ≥ 0.33, Astro ≥ 5.1.5, Node ≥ 20. `site` must be set in the Astro config. |
 
 ```diff
 - <title>Git | MCP Doc</title>
@@ -44,7 +44,7 @@ The sidebar still says **Git**. The `<h1>` still says **Git**.
 
 ```text
 package      starlight-seo (ESM, plain JavaScript + hand-written .d.ts, zero dependencies)
-versions     built for Starlight 0.42.x + Astro 7.x (tested 0.42.5 / 7.3.5); floor Starlight 0.32, Astro 5, Node 20
+versions     built for Starlight 0.42.x + Astro 7.x (tested 0.42.6 / 7.3.8); floor Starlight 0.33, Astro 5.1.5, Node 20
 npm          https://www.npmjs.com/package/starlight-seo
 install      pnpm add starlight-seo -> plugins: [starlightSeo()] -> docsSchema({ extend: seoSchema() })
 entry        index.js       default export starlightSeo(options) -> Starlight plugin
@@ -301,7 +301,7 @@ Node identifiers are stable and can be relied on in hooks and tests:
 
 `inLanguage` is the Starlight `lang` of the page. `publisher` and `author` sit on the article node, not on `WebPage`. The crumb of the current page carries its sidebar label; nested groups that lead to the same page collapse into one crumb.
 
-`breadcrumbs.groups` decides what a sidebar group becomes: `'link'` (default) points it at the first page of the group, `'plain'` keeps the name without a URL, `'skip'` leaves groups out.
+`breadcrumbs.groups` decides what a sidebar group becomes: `'link'` (default) points it at the first page of the group, `'plain'` keeps the name without a URL for the `page` and `graph` hooks but leaves it out of the JSON-LD list, because Google wants a URL on every crumb but the last; `'skip'` leaves groups out.
 
 `breadcrumbs.section` puts one fixed crumb right after the first one, for a site whose docs live under a section the sidebar does not name: `{ label: { en: 'Docs', ru: 'Документация' }, href: '/docs/' }`. `href` is relative to the language root. The crumb is dropped on the section page itself and when the sidebar already leads through it.
 
@@ -427,7 +427,7 @@ The pure functions behind the middleware are exported from `starlight-seo/core` 
 | Option | Default | Meaning |
 |---|---|---|
 | `site.name` | Starlight `title` | site name in titles and JSON-LD |
-| `site.alternateName`, `site.description`, `site.about` | - | `WebSite` fields; `about` is also the default topic of every article |
+| `site.alternateName`, `site.description`, `site.about` | `description`: the Starlight `description` | `WebSite` fields; `site.description` is also the description of a page that has none; `about` is also the default topic of every article |
 | `publisher` | the site itself | `{ type, id, name, url, logo, sameAs }` |
 | `title`, `description` | see above | length limits and title templates |
 | `types`, `defaultType` | `[]`, `'TechArticle'` | page types by path |
@@ -435,7 +435,7 @@ The pure functions behind the middleware are exported from `starlight-seo/core` 
 | `robots` | snippet directives | `robots` meta content, or `false` |
 | `breadcrumbs` | `{ groups: 'link', standalone: true }` | group handling, the label of the first crumb, an optional `section` crumb, and whether the list is a separate JSON-LD block |
 | `fallback` | `'canonical'` | canonical URL of untranslated pages |
-| `exclude` | `['/404/', '/404.html']` | paths the plugin leaves untouched: no title, no image, no JSON-LD. The 404 page keeps whatever the site gives it |
+| `exclude` | `['/404/', '/404.html']` | paths the plugin leaves untouched: no title, no image, no JSON-LD. Your list is added to the default one, so the 404 page always keeps whatever the site gives it. Matched without the locale prefix, in the middleware and in the audit alike |
 | `extend` | none | module with `page` and `graph` hooks |
 | `audit` | on, `failOn: 'error'` | build audit |
 
@@ -445,13 +445,13 @@ Every text option accepts a string or a per-language record: `{ en: 'Docs', ru: 
 
 | | Built for and tested on | Lowest supported | Why that floor |
 |---|---|---|---|
-| Starlight | 0.42.5 | 0.32 | the `config:setup` hook and plugin route middleware appeared in 0.32 |
-| Astro | 7.3.5 | 5 | Starlight 0.32 requires Astro 5 |
+| Starlight | 0.42.6 | 0.33 | the `head` route data the plugin writes to appeared in 0.33 |
+| Astro | 7.3.8 | 5.1.5 | Starlight 0.33 requires Astro 5.1.5 |
 | Node | 22, 24 | 20 | |
 
 Versions between the floor and the tested release are expected to work, but only the tested pair is exercised by the fixture build. If a newer Starlight changes the shape of `route.head` or `route.sidebar`, `pnpm test:fixture` is the test that shows it.
 
-Pages rendered outside Starlight - plain `src/pages/*.astro` routes that do not use `<StarlightPage>` - are not touched by the middleware, but the audit still reads them. A non-root Astro `base` is not handled yet.
+Pages rendered outside Starlight - plain `src/pages/*.astro` routes that do not use `<StarlightPage>` - are not touched by the middleware, but the audit still reads them. A site served under a sub-path - an Astro `base` other than `/`, or a path in `site` - stops the build with an error: canonical URLs, breadcrumbs and the audit assume the site root.
 
 ## Prior art
 

@@ -8,7 +8,7 @@
 [![npm](https://img.shields.io/npm/v/starlight-seo?label=npm)](https://www.npmjs.com/package/starlight-seo)
 [![Выпуск](https://img.shields.io/github/v/tag/kaktaknet/starlight-seo?label=%D0%B2%D1%8B%D0%BF%D1%83%D1%81%D0%BA&sort=semver)](https://github.com/kaktaknet/starlight-seo/tags)
 [![Лицензия: MIT](https://img.shields.io/github/license/kaktaknet/starlight-seo?label=%D0%BB%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F)](./LICENSE)
-[![Starlight](https://img.shields.io/badge/Starlight-%E2%89%A5%200.32-7c3aed)](https://starlight.astro.build/)
+[![Starlight](https://img.shields.io/badge/Starlight-%E2%89%A5%200.33-7c3aed)](https://starlight.astro.build/)
 [![Astro](https://img.shields.io/badge/Astro-%E2%89%A5%205-ff5d01)](https://astro.build/)
 [![В каталоге плагинов Starlight](https://img.shields.io/badge/Starlight-%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3%20%D0%BF%D0%BB%D0%B0%D0%B3%D0%B8%D0%BD%D0%BE%D0%B2-7c3aed?logo=astro&logoColor=white)](https://starlight.astro.build/resources/plugins/#community-plugins)
 [![Node](https://img.shields.io/badge/Node-%E2%89%A5%2020-339933)](https://nodejs.org/)
@@ -29,8 +29,8 @@
 | **Решение** | Меню и заголовок страницы сохраняют короткое название. Поисковики и карточки в соцсетях получают полный заголовок из `seo.title` или из шаблона раздела. |
 | **Ещё** | Один граф JSON-LD на страницу и отдельная цепочка хлебных крошек из бокового меню, достройка Open Graph и проверка, которая останавливает сборку при слабых метаданных. |
 | **Как устроен** | Обработчик маршрута Starlight. Компоненты не подменяются, зависимостей нет, шага сборки нет. |
-| **Сделан для** | Starlight **0.42** на Astro **7** - разработан и проверен на 0.42.5 и 7.3.5. |
-| **Работает с** | Starlight ≥ 0.32, Astro ≥ 5, Node ≥ 20. В настройках Astro должен быть задан `site`. |
+| **Сделан для** | Starlight **0.42** на Astro **7** - разработан и проверен на 0.42.6 и 7.3.8. |
+| **Работает с** | Starlight ≥ 0.33, Astro ≥ 5.1.5, Node ≥ 20. В настройках Astro должен быть задан `site`. |
 
 ```diff
 - <title>Git | MCP Doc</title>
@@ -44,7 +44,7 @@
 
 ```text
 package      starlight-seo (ESM, plain JavaScript + hand-written .d.ts, zero dependencies)
-versions     built for Starlight 0.42.x + Astro 7.x (tested 0.42.5 / 7.3.5); floor Starlight 0.32, Astro 5, Node 20
+versions     built for Starlight 0.42.x + Astro 7.x (tested 0.42.6 / 7.3.8); floor Starlight 0.33, Astro 5.1.5, Node 20
 npm          https://www.npmjs.com/package/starlight-seo
 install      pnpm add starlight-seo -> plugins: [starlightSeo()] -> docsSchema({ extend: seoSchema() })
 entry        index.js       default export starlightSeo(options) -> Starlight plugin
@@ -301,7 +301,7 @@ starlightSeo({
 
 `inLanguage` - это `lang` страницы в Starlight. `publisher` и `author` стоят на узле статьи, а не на `WebPage`. Крошка текущей страницы несёт её название из бокового меню; вложенные группы, ведущие на одну страницу, сливаются в одну крошку.
 
-`breadcrumbs.groups` определяет, чем станет группа бокового меню: `'link'` (по умолчанию) ведёт на первую страницу группы, `'plain'` оставляет название без адреса, `'skip'` пропускает группы.
+`breadcrumbs.groups` определяет, чем станет группа бокового меню: `'link'` (по умолчанию) ведёт на первую страницу группы, `'plain'` оставляет название без адреса для обработчиков `page` и `graph`, но в список JSON-LD его не включает: Google требует адрес у каждого звена, кроме последнего; `'skip'` пропускает группы.
 
 `breadcrumbs.section` ставит одну постоянную крошку сразу после первой - для сайта, у которого документация лежит в разделе, не названном в боковом меню: `{ label: { en: 'Docs', ru: 'Документация' }, href: '/docs/' }`. `href` отсчитывается от корня языка. На странице самого раздела крошки нет, и её нет, если боковое меню уже ведёт через этот раздел.
 
@@ -427,7 +427,7 @@ const result = await audit('dist', normalize({}, { site: 'https://docs.example.c
 | Настройка | По умолчанию | Смысл |
 |---|---|---|
 | `site.name` | `title` из Starlight | название сайта в заголовках и JSON-LD |
-| `site.alternateName`, `site.description`, `site.about` | - | поля `WebSite`; `about` также служит темой каждой статьи по умолчанию |
+| `site.alternateName`, `site.description`, `site.about` | `description`: `description` из Starlight | поля `WebSite`; `site.description` также становится описанием страницы, у которой своего нет; `about` также служит темой каждой статьи по умолчанию |
 | `publisher` | сам сайт | `{ type, id, name, url, logo, sameAs }` |
 | `title`, `description` | см. выше | пределы длины и шаблоны заголовков |
 | `types`, `defaultType` | `[]`, `'TechArticle'` | типы страниц по путям |
@@ -435,7 +435,7 @@ const result = await audit('dist', normalize({}, { site: 'https://docs.example.c
 | `robots` | директивы сниппета | содержимое мета-тега `robots` или `false` |
 | `breadcrumbs` | `{ groups: 'link', standalone: true }` | обработка групп, название первой крошки, необязательная крошка раздела `section` и вывод цепочки отдельным блоком JSON-LD |
 | `fallback` | `'canonical'` | канонический адрес непереведённых страниц |
-| `exclude` | `['/404/', '/404.html']` | пути, которые плагин не трогает: ни заголовка, ни картинки, ни JSON-LD. Страница 404 сохраняет то, что даёт ей сайт |
+| `exclude` | `['/404/', '/404.html']` | пути, которые плагин не трогает: ни заголовка, ни картинки, ни JSON-LD. Ваш список добавляется к списку по умолчанию, поэтому страница 404 всегда сохраняет то, что даёт ей сайт. Сравнивается без языкового префикса - и в обработчике, и в проверке |
 | `extend` | нет | модуль с функциями `page` и `graph` |
 | `audit` | включена, `failOn: 'error'` | проверка при сборке |
 
@@ -445,13 +445,13 @@ const result = await audit('dist', normalize({}, { site: 'https://docs.example.c
 
 | | Сделан для и проверен на | Наименьшая поддерживаемая | Откуда нижняя граница |
 |---|---|---|---|
-| Starlight | 0.42.5 | 0.32 | точка расширения `config:setup` и обработчики маршрута для плагинов появились в 0.32 |
-| Astro | 7.3.5 | 5 | Starlight 0.32 требует Astro 5 |
+| Starlight | 0.42.6 | 0.33 | `head` в данных маршрута, куда плагин пишет заголовок страницы, появился в 0.33 |
+| Astro | 7.3.8 | 5.1.5 | Starlight 0.33 требует Astro 5.1.5 |
 | Node | 22, 24 | 20 | |
 
 Версии между нижней границей и проверенным выпуском должны работать, но сборкой проверочного сайта подтверждена только проверенная пара. Если новый Starlight изменит устройство `route.head` или `route.sidebar`, это покажет `pnpm test:fixture`.
 
-Страницы вне Starlight - обычные маршруты `src/pages/*.astro` без `<StarlightPage>` - обработчик не затрагивает, но проверка их читает. Настройка `base` в Astro, отличная от корня, пока не учитывается.
+Страницы вне Starlight - обычные маршруты `src/pages/*.astro` без `<StarlightPage>` - обработчик не затрагивает, но проверка их читает. Сайт, размещённый в подкаталоге - `base` в Astro не равен `/` или в `site` есть путь, - останавливает сборку с ошибкой: канонические адреса, навигационная цепочка и проверка рассчитаны на корень сайта.
 
 ## Откуда взяты приёмы
 

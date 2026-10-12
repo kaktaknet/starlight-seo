@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-10-12
+
+The first stable release. The options, the hook contract, the node identifiers and the output shape are now covered by semantic versioning.
+
+### Fixed
+
+- A page without its own description lost its `description` and `og:description` when the site description was set only in the Starlight config. The Starlight `description` is now the fallback for `site.description`.
+- A `type` returned by the `page` hook now also sets `og:type` and the `article:*` times, not only the JSON-LD node.
+- `breadcrumbs.groups: 'plain'` no longer puts crumbs without a URL into the JSON-LD `BreadcrumbList`, which Google rejects; the crumbs stay in `page.breadcrumbs` for the hooks.
+- A sidebar group whose first link is external no longer gets that link as its breadcrumb URL.
+- The plugin `exclude` list is matched without the locale prefix in the audit too, as in the middleware, so an excluded translated page is no longer audited.
+- `pushGraph` in `starlight-seo/core` is typed with its `options` argument; `AuditFinding.rule` is typed as `AuditRule` and `audit()` takes the resolved options.
+
+### Changed
+
+- A site served under a sub-path (an Astro `base` other than `/`, or a path in `site`) now stops the build with an error instead of producing wrong canonical URLs and an audit that checks nothing.
+- `audit.failOn` is validated: anything but `'error'`, `'warn'` or `'off'` stops the build.
+- A user `exclude` list is added to the default one, so the 404 page is always left alone.
+- The lowest supported versions are Starlight 0.33.0 and Astro 5.1.5, measured: Starlight 0.32 has no `head` in its route data and the plugin cannot run there. CI now tests that floor on every change.
+- Tested on Starlight 0.42.6 and Astro 7.3.8.
+
 ## [0.3.0] - 2026-10-12
 
 ### Added
@@ -58,6 +79,8 @@ All notable changes to this project are documented here. The format follows [Kee
 - Build audit with 14 rules that fails the build on errors.
 - Per-language values for every text option.
 
+[1.0.0]: https://github.com/kaktaknet/starlight-seo/releases/tag/v1.0.0
+[0.3.0]: https://github.com/kaktaknet/starlight-seo/releases/tag/v0.3.0
 [0.2.2]: https://github.com/kaktaknet/starlight-seo/releases/tag/v0.2.2
 [0.2.1]: https://github.com/kaktaknet/starlight-seo/releases/tag/v0.2.1
 [0.2.0]: https://github.com/kaktaknet/starlight-seo/releases/tag/v0.2.0
