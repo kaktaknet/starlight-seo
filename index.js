@@ -31,6 +31,9 @@ export default function starlightSeo(userOptions = {}) {
         const root = !config.defaultLocale || config.defaultLocale === 'root'
         const options = normalize(userOptions, {
           site: astroConfig.site,
+          base: astroConfig.base,
+          description: config.description,
+          locales: Object.keys(config.locales ?? {}).filter((key) => key !== 'root'),
           delimiter: config.titleDelimiter,
           defaultPrefix: root ? '' : `/${config.defaultLocale}`,
         })

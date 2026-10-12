@@ -284,3 +284,41 @@ test('a title returned by the page hook is branded like any other', () => {
   assert.equal(page.headTitle, 'Hook title for the page | MCP Doc')
   assert.equal(page.titleSource, 'hook')
 })
+
+test('options: Starlight description is the fallback, sub-path sites are refused, failOn is checked, 404 stays excluded', () => {
+  const site = 'https://x.y'
+  assert.equal(normalize({}, { site, description: 'From Starlight' }).site.description, 'From Starlight')
+  assert.equal(normalize({ site: { description: 'Own' } }, { site, description: 'From Starlight' }).site.description, 'Own')
+  const page = resolvePage(normalize({}, { site, description: 'From Starlight' }), input({ description: undefined }))
+  assert.equal(page.description, 'From Starlight')
+  assert.throws(() => normalize({}, { site, base: '/docs' }), /sub-path/)
+  assert.throws(() => normalize({}, { site: 'https://x.y/docs/' }), /sub-path/)
+  assert.doesNotThrow(() => normalize({}, { site, base: '/' }))
+  assert.throws(() => normalize({ audit: { failOn: 'warning' } }, { site }), /audit.failOn/)
+  assert.deepEqual(normalize({ exclude: ['/drafts/**'] }, { site }).exclude, ['/404/', '/404.html', '/drafts/**'])
+})
+
+test('breadcrumbs: plain groups stay visible to hooks but out of the JSON-LD list, external links never become group URLs', () => {
+  const plain = normalize({ breadcrumbs: { groups: 'plain' } }, { site: 'https://mcpdoc.ru' })
+  const page = resolvePage(plain, input())
+  assert.ok(page.breadcrumbs.some((crumb) => !crumb.href))
+  const list = graphOf(page, plain).find((node) => node['@type'] === 'BreadcrumbList')
+  assert.equal(list.itemListElement.length, page.breadcrumbs.filter((crumb) => crumb.href).length)
+  assert.ok(!list.itemListElement.some((item) => item.name === 'SDK'))
+  list.itemListElement.forEach((item, index) => {
+    assert.equal(item.position, index + 1)
+    assert.ok(!item.item.endsWith('/undefined'))
+  })
+  const external = [
+    {
+      type: 'group',
+      label: 'Links',
+      entries: [
+        { type: 'link', label: 'GitHub', href: 'https://github.com/x', isCurrent: false },
+        { type: 'link', label: 'Local', href: '/links/local/', isCurrent: true },
+      ],
+    },
+  ]
+  const crumbs = breadcrumbs({ sidebar: external, home: { label: 'Home', href: '/' }, label: 'Local', pathname: '/links/local/', isHome: false, groups: 'link' })
+  assert.ok(crumbs.every((crumb) => !crumb.href || crumb.href.startsWith('/')))
+})

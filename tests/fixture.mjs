@@ -53,12 +53,15 @@ assert.equal(node(ru, '#website').description, 'Проверочный сайт 
 assert.equal(node(ru, '#article').inLanguage, 'ru')
 assert.equal(node(ru, '#breadcrumb').itemListElement[0].item, 'https://example.com/ru/')
 
+const retyped = page('/ru/')
+assert.equal(retyped.html.includes('property="og:type" content="article"'), true)
+assert.equal(node(retyped, '#article')['@type'], 'BlogPosting')
+
 const hidden = page('/hidden/')
 assert.equal(hidden.robots, 'noindex, follow')
-
-console.log('fixture: all assertions passed')
 
 const fallback = page('/ru/blog/first/')
 assert.equal(fallback.canonical, 'https://example.com/blog/first/')
 assert.equal(page('/ru/guides/install/').canonical, 'https://example.com/ru/guides/install/')
 console.log('fixture: fallback pages point at the source page')
+console.log('fixture: all assertions passed')

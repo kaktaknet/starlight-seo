@@ -119,3 +119,13 @@ test('an image path cannot leave the build output', async () => {
   })
   assert.deepEqual(rules(result), ['image.broken', 'image.broken'])
 })
+
+test('the plugin exclude list is matched without the locale prefix, like the middleware', async () => {
+  const root = await site({ 'ru/drafts/x/index.html': html({}), 'drafts/y/index.html': html({}) })
+  try {
+    const result = await audit(root, normalize({ exclude: ['/drafts/**'] }, { site: 'https://example.com', locales: ['ru'] }))
+    assert.equal(result.pages, 0)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})

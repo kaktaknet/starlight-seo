@@ -2,6 +2,7 @@ import { defineRouteMiddleware } from '@astrojs/starlight/route-data'
 import options from 'virtual:starlight-seo/options'
 import { graph as graphHook, page as pageHook } from 'virtual:starlight-seo/extend'
 import { applyHead, canonicalOf, graphOf, pushGraph, setCanonical } from './lib/head.js'
+import { isArticle } from './lib/graph.js'
 import { resolvePage, retitle } from './lib/page.js'
 import { anyMatch } from './lib/text.js'
 
@@ -43,6 +44,7 @@ export const onRequest = defineRouteMiddleware(async (context, next) => {
     const patch = (await pageHook(page, context)) ?? {}
     Object.assign(page, patch)
     if (patch.title !== undefined && patch.headTitle === undefined) Object.assign(page, retitle(options, page, patch.title))
+    if (patch.type !== undefined && patch.article === undefined) page.article = isArticle(page.type)
   }
 
   applyHead(route.head, page, options)

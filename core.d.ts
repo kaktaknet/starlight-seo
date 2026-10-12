@@ -25,12 +25,12 @@ export interface HeadEntry {
 
 export type ResolvedOptions = Record<string, any>
 
-export function normalize(options: StarlightSeoOptions, context: { site?: string | URL; delimiter?: string; defaultPrefix?: string }): ResolvedOptions
+export function normalize(options: StarlightSeoOptions, context: { site?: string | URL; base?: string; description?: string; locales?: string[]; delimiter?: string; defaultPrefix?: string }): ResolvedOptions
 export function resolvePage(options: ResolvedOptions, input: PageInput): SeoPage
 export function retitle(options: ResolvedOptions, page: SeoPage, title: string): Pick<SeoPage, 'title' | 'headTitle' | 'titleSource'>
 export function applyHead(head: HeadEntry[], page: SeoPage, options: ResolvedOptions): void
 export function graphOf(page: SeoPage, options: ResolvedOptions): SeoNode[]
-export function pushGraph(head: HeadEntry[], nodes: SeoNode[]): void
+export function pushGraph(head: HeadEntry[], nodes: SeoNode[], options?: { breadcrumbs?: { standalone?: boolean } }): void
 export function wrap(nodes: SeoNode[]): { '@context': string; '@graph': SeoNode[] }
 export function splitBlocks(nodes: SeoNode[], options?: { standaloneTypes?: string[] }): SeoNode[]
 export function serialize(value: unknown): string
